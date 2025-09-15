@@ -11,7 +11,6 @@ export default function Home() {
         </header>
 
         {/* server component will fetch items */}
-        {/* @ts-expect-error Server Component */}
         <TileGrid site="stavrin" />
       </div>
     </main>
