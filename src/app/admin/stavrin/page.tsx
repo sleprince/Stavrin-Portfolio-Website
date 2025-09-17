@@ -1,4 +1,3 @@
-// src/app/admin/stavrin/page.tsx
 'use client'
 
 import React, { useEffect, useState } from 'react'
@@ -11,9 +10,10 @@ export default function AdminStavrinPage() {
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<any[]>([])
 
-  // form states
+  // ----------------- FORM STATES -----------------
   const [title, setTitle] = useState('')
   const [excerpt, setExcerpt] = useState('')
+  const [content, setContent] = useState('') // <-- NEW field for full story
   const [slug, setSlug] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
@@ -71,6 +71,7 @@ export default function AdminStavrinPage() {
 
     let mediaArr: any[] = []
 
+    // upload image if provided
     if (file) {
       const path = `${Date.now()}-${file.name}`
       const { error } = await supabase.storage.from('media').upload(path, file)
@@ -79,6 +80,7 @@ export default function AdminStavrinPage() {
       mediaArr.push({ type: 'image', url: data.publicUrl })
     }
 
+    // upload audio if provided
     if (audioFile) {
       const path = `${Date.now()}-${audioFile.name}`
       const { error } = await supabase.storage.from('media').upload(path, audioFile)
@@ -87,24 +89,29 @@ export default function AdminStavrinPage() {
       mediaArr.push({ type: 'audio', url: data.publicUrl })
     }
 
+    // generate slug if empty
     let newSlug = slug || title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
     if (!editingId) newSlug = `${newSlug}-${Date.now()}`
 
+    // construct payload for DB
     const payload: any = {
       site_slug: 'stavrin',
       title,
       slug: newSlug,
-      excerpt,
+      excerpt,   // short preview text
+      content,   // <-- full story text
       visible: true
     }
     if (mediaArr.length > 0) payload.media = mediaArr
 
     if (editingId) {
+      // update existing
       const { error } = await supabase.from('items').update(payload).eq('id', editingId)
       if (error) return alert('Update error: ' + error.message)
       setItems(items.map(item => (item.id === editingId ? { ...item, ...payload } : item)))
       setMessage('✅ Item updated!')
     } else {
+      // create new
       const { data, error } = await supabase.from('items').insert([payload]).select()
       if (error) return alert('Insert error: ' + error.message)
       setItems([...items, ...data])
@@ -130,7 +137,7 @@ export default function AdminStavrinPage() {
     reordered.splice(result.destination.index, 0, moved)
     setItems(reordered)
 
-    // persist new order
+    // persist new order in DB
     await Promise.all(
       reordered.map((item, idx) =>
         supabase.from('items').update({ order_idx: idx }).eq('id', item.id)
@@ -142,6 +149,7 @@ export default function AdminStavrinPage() {
   const resetForm = () => {
     setTitle('')
     setExcerpt('')
+    setContent('') // reset full story too
     setSlug('')
     setFile(null)
     setAudioFile(null)
@@ -157,6 +165,7 @@ export default function AdminStavrinPage() {
   if (loading) return <p>Loading...</p>
 
   if (!user) {
+    // login screen
     return (
       <div className="p-6 max-w-lg mx-auto">
         <h2 className="text-xl font-semibold mb-4">Admin login</h2>
@@ -183,30 +192,72 @@ export default function AdminStavrinPage() {
       {/* Form */}
       <div className="mb-4">
         <label className="block mb-1">Title</label>
-        <input className="w-full p-2 border rounded mb-2" value={title} onChange={e => setTitle(e.target.value)} />
+        <input
+          className="w-full p-2 border rounded mb-2"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+        />
 
         <label className="block mb-1">Slug (optional)</label>
-        <input className="w-full p-2 border rounded mb-2" value={slug} onChange={e => setSlug(e.target.value)} />
+        <input
+          className="w-full p-2 border rounded mb-2"
+          value={slug}
+          onChange={e => setSlug(e.target.value)}
+        />
 
         <label className="block mb-1">Excerpt</label>
-        <textarea className="w-full p-2 border rounded mb-2" value={excerpt} onChange={e => setExcerpt(e.target.value)} />
+        <textarea
+          className="w-full p-2 border rounded mb-2"
+          value={excerpt}
+          onChange={e => setExcerpt(e.target.value)}
+        />
+
+        {/* NEW: Full story field */}
+        <label className="block mb-1">Full Content</label>
+        <textarea
+          className="w-full p-2 border rounded mb-2"
+          rows={5}
+          value={content}
+          onChange={e => setContent(e.target.value)}
+        />
 
         <label className="block mb-1">Image (replace if uploading new)</label>
-        <input type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] ?? null)} className="mb-2" />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={e => setFile(e.target.files?.[0] ?? null)}
+          className="mb-2"
+        />
 
         <label className="block mb-1">Audio (replace if uploading new)</label>
-        <input type="file" accept="audio/*" onChange={e => setAudioFile(e.target.files?.[0] ?? null)} className="mb-2" />
+        <input
+          type="file"
+          accept="audio/*"
+          onChange={e => setAudioFile(e.target.files?.[0] ?? null)}
+          className="mb-2"
+        />
 
         <div className="flex gap-2 mt-2">
-          <button className="px-4 py-2 bg-green-600 text-white rounded" onClick={handleSaveItem}>
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded"
+            onClick={handleSaveItem}
+          >
             {editingId ? 'Update Item' : 'Create Item'}
           </button>
           {editingId && (
-            <button className="px-4 py-2 bg-gray-400 text-white rounded" onClick={resetForm}>
+            <button
+              className="px-4 py-2 bg-gray-400 text-white rounded"
+              onClick={resetForm}
+            >
               Cancel
             </button>
           )}
-          <button className="px-4 py-2 bg-gray-200 rounded" onClick={handleSignOut}>Sign out</button>
+          <button
+            className="px-4 py-2 bg-gray-200 rounded"
+            onClick={handleSignOut}
+          >
+            Sign out
+          </button>
         </div>
       </div>
 
@@ -236,6 +287,7 @@ export default function AdminStavrinPage() {
                           onClick={() => {
                             setTitle(item.title)
                             setExcerpt(item.excerpt)
+                            setContent(item.content || '') // <-- load full story if exists
                             setSlug(item.slug)
                             setEditingId(item.id)
                           }}
