@@ -1,27 +1,28 @@
-// src/components/TileCard.tsx
-"use client"; // this one needs to run in the browser (animations, audio, modal)
+"use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion"; // install with: npm i framer-motion
+import { motion } from "framer-motion";
 
 export default function TileCard({ item }: { item: any }) {
   const [open, setOpen] = useState(false);
 
-  // fallback thumbnail if no media
-  const thumb = item?.media?.[0]?.url || "/placeholder.png";
+  // Grab image & audio from media array
+  const imageUrl =
+    item?.media?.find((m: any) => m.type === "image")?.url || "/placeholder.png";
+  const audioUrl = item?.media?.find((m: any) => m.type === "audio")?.url || null;
 
   return (
     <>
       {/* main tile */}
       <motion.article
-        whileHover={{ scale: 1.05, rotate: 1 }} // jiggle/zoom on hover
+        whileHover={{ scale: 1.05, rotate: 1 }}
         transition={{ type: "spring", stiffness: 300 }}
-        onClick={() => setOpen(true)} // open modal on click
+        onClick={() => setOpen(true)}
         className="bg-white rounded-lg shadow p-3 cursor-pointer"
       >
         <div className="h-44 w-full overflow-hidden rounded">
           <img
-            src={thumb}
+            src={imageUrl}
             alt={item.title}
             className="w-full h-full object-cover"
           />
@@ -42,27 +43,23 @@ export default function TileCard({ item }: { item: any }) {
               ✕
             </button>
 
-            {/* full image */}
+            {/* big image */}
             <img
-              src={thumb}
+              src={imageUrl}
               alt={item.title}
               className="w-full h-48 object-cover rounded"
             />
 
             {/* details */}
             <h2 className="text-2xl font-bold mt-4">{item.title}</h2>
-            <p className="text-gray-700 mt-2">{item.content || item.excerpt}</p>
+            <p className="text-gray-700 mt-2">
+              {item.content || item.excerpt}
+            </p>
 
-            {/* audio player (if audio exists) */}
-            {item?.audio_url && (
-              <audio
-                controls
-                src={item.audio_url}
-                className="w-full mt-4"
-              />
+            {/* audio player */}
+            {audioUrl && (
+              <audio controls src={audioUrl} className="w-full mt-4" />
             )}
-
-            {/* extra media (images/videos could go here later) */}
           </div>
         </div>
       )}
