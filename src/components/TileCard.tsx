@@ -71,11 +71,12 @@ export default function TileCard({ item }: { item: any }) {
       </motion.article>
 
       {open && (
-        <div
-          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 overflow-auto p-4"
-          onClick={handleBackgroundClick}
-        >
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full relative p-6 flex flex-col">
+<div
+  className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 overflow-auto p-4"
+  onClick={handleBackgroundClick}
+>
+  <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full relative p-6 flex flex-col mt-10 mb-10">
+
             <button
               className="absolute top-2 right-2 text-gray-600 hover:text-black"
               onClick={() => setOpen(false)}
@@ -83,11 +84,11 @@ export default function TileCard({ item }: { item: any }) {
               ✕
             </button>
 
-            <img
-              src={imageUrl}
-              alt={item.title}
-              className="w-full h-auto max-h-[60vh] object-contain rounded mb-4"
-            />
+          <img
+  src={imageUrl}
+  alt={item.title}
+  className="w-full h-auto max-h-[60vh] object-contain rounded mb-4 mx-auto"
+/>
 
             <h2 className="text-2xl font-bold">{item.title}</h2>
 
