@@ -93,7 +93,7 @@ export default function AdminStavrinPage() {
     let newSlug = slug || title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
     if (!editingId) newSlug = `${newSlug}-${Date.now()}`
 
-    // construct payload for DataBase
+    // construct payload for DB
     const payload: any = {
       site_slug: 'stavrin',
       title,
